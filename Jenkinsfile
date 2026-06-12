@@ -16,14 +16,6 @@ pipeline {
         }
 
         stage('Build & Push Docker Image') {
-            agent {
-                // This tells Jenkins to run this specific stage using the host's docker daemon
-                docker {
-                    image 'docker:latest'
-                    // Gives it access to the underlying docker socket on your Mac
-                    args '-v /var/run/docker.sock:/var/run/docker.sock'
-                }
-            }
             steps {
                 script {
                     // Builds the image using your local Mac Docker daemon
