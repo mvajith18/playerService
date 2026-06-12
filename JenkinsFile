@@ -1,0 +1,52 @@
+pipeline {
+    agent any
+    environment {
+        // Pointing to your local port-forwarded registry
+        REGISTRY_URI = "host.docker.internal:5001"
+        IMAGE_NAME = "playerService"
+        IMAGE_TAG = "${env.BUILD_NUMBER}"
+        MANIFEST_REPO_URL = "github.com/mvajith18/playerService-deployment.git"
+    }
+
+    stages {
+        stage('Checkout Code') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build & Push Docker Image') {
+            steps {
+                script {
+                    // Builds the image using your local Mac Docker daemon
+                    sh "docker build -t ${REGISTRY_URI}/${IMAGE_NAME}:${IMAGE_TAG} ."
+                    sh "docker push ${REGISTRY_URI}/${IMAGE_NAME}:${IMAGE_TAG}"
+                }
+            }
+        }
+
+        stage('Update GitOps Manifest Repository') {
+            steps {
+                // 'github-token' is the ID of the credential we will save in Jenkins in the next step
+                withCredentials([usernamePassword(credentialsId: 'github-token', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
+                    sh """
+                        git config --global user.email "jenkins-automation@local.com"
+                        git config --global user.name "Jenkins Local Automation"
+
+                        # Clone the manifest repository
+                        git clone https://${GIT_USERNAME}:${GIT_PASSWORD}@${MANIFEST_REPO_URL}
+                        cd playerService-deployment
+
+                        # Dynamically change the image tag to the new build number inside deployment.yaml
+                        sed -i 's|image: .*|image: localhost:5001/'${IMAGE_NAME}':'${IMAGE_TAG}'|g' deployment.yaml
+
+                        # Commit the change back to your repository
+                        git add deployment.yaml
+                        git commit -m "Jenkins CI: Updating deployment image tag to build #${IMAGE_TAG} [skip ci]"
+                        git push origin main
+                    """
+                }
+            }
+        }
+    }
+}
