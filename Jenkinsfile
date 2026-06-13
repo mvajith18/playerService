@@ -3,7 +3,7 @@ pipeline {
     environment {
         // Pointing to your local port-forwarded registry
         REGISTRY_URI = "host.docker.internal:5001"
-        IMAGE_NAME = "playerService"
+        IMAGE_NAME = "playerservice"
         IMAGE_TAG = "${env.BUILD_NUMBER}"
         MANIFEST_REPO_URL = "github.com/mvajith18/playerService-deployment.git"
     }
