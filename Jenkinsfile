@@ -18,9 +18,12 @@ pipeline {
         stage('Build & Push Docker Image') {
             steps {
                 script {
-                    // Builds the image using your local Mac Docker daemon
-                    sh "docker build -t ${REGISTRY_URI}/${IMAGE_NAME}:${IMAGE_TAG} ."
-                    sh "docker push ${REGISTRY_URI}/${IMAGE_NAME}:${IMAGE_TAG}"
+                    // 1. Download official portable Docker CLI binary for Linux inside Jenkins
+                    sh 'curl -fsSL https://download.docker.com/linux/static/stable/x86_64/docker-24.0.7.tgz | tar -xzm'
+
+                    // 2. Execute build and push using the freshly downloaded local CLI tool
+                    sh "./docker/docker build -t ${REGISTRY_URI}/${IMAGE_NAME}:${IMAGE_TAG} ."
+                    sh "./docker/docker push ${REGISTRY_URI}/${IMAGE_NAME}:${IMAGE_TAG}"
                 }
             }
         }
