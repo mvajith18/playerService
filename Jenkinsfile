@@ -37,6 +37,9 @@ pipeline {
                         git config --global user.email "jenkins-automation@local.com"
                         git config --global user.name "Jenkins Local Automation"
 
+                        # FIX: Remove the folder if a previous build left it behind
+                        rm -rf playerService-deployment
+
                         # Clone the manifest repository
                         git clone https://${GIT_USERNAME}:${GIT_PASSWORD}@${MANIFEST_REPO_URL}
                         cd playerService-deployment
