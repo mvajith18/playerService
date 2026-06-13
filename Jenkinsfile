@@ -2,7 +2,8 @@ pipeline {
     agent any
     environment {
         // Pointing to your local port-forwarded registry
-        REGISTRY_URI = "host.docker.internal:5001"
+        REGISTRY_URI = "host.docker.internal:5001" // Used by Jenkins to push from your Mac
+        CLUSTER_REGISTRY_URI = "localhost:5000"     // Used by Minikube internally to pull (by Argocd)
         IMAGE_NAME = "playerservice"
         IMAGE_TAG = "${env.BUILD_NUMBER}"
         MANIFEST_REPO_URL = "github.com/mvajith18/playerService-deployment.git"
@@ -41,7 +42,7 @@ pipeline {
                         cd playerService-deployment
 
                         # Dynamically change the image tag to the new build number inside deployment.yaml
-                        sed -i 's|image: .*|image: localhost:5001/'${IMAGE_NAME}':'${IMAGE_TAG}'|g' deployment.yaml
+                        sed -i 's|image: .*|image: '${CLUSTER_REGISTRY_URI}'/'${IMAGE_NAME}':'${IMAGE_TAG}'|g' deployment.yaml
 
                         # Commit the change back to your repository
                         git add deployment.yaml
